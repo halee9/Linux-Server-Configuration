@@ -1,4 +1,4 @@
-# 1\. Launch the Virtual Machine
+## 1\. Launch the Virtual Machine
 
 - Public IP Address: 52.40.200.116
 
