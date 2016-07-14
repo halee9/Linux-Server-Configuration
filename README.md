@@ -1,6 +1,7 @@
-## 1\. Launch the Virtual Machine
+# 1\. Launch the Virtual Machine
 
 - Public IP Address: 52.40.200.116
+- URL: <http://ec2-52-40-200-116.us-west-2.compute.amazonaws.com/>
 
 # 2\. Create a new user named grader and grant this user sudo permissions.
 
@@ -21,10 +22,10 @@
 
 # 5\. Change the SSH port from 22 to 2200
 
-- On your local machine, generate an id and public key `$ ssh-keygen -f ~/.ssh/grader_key`
+- On your local machine, generate an id and public key `$ ssh-keygen -f ~/.ssh/udacity_key.rsa`
 - `# mkdir /home/grader/.ssh`
 - `# nano /home/grader/.ssh/authorized_keys`
-- copy content of "grader_key.pub" on the local to "authorized_keys" on the host
+- copy content of "udacity_key.rsa.pub" on the local to "authorized_keys" on the host
 - `sudo chmod 700 /home/grader/.ssh`
 - `sudo chmod 644 /home/grader/.ssh/authorized_keys`
 - `sudo chown -R grader:grader /home/grader/.ssh`
@@ -33,7 +34,7 @@
 
 - `# sudo service ssh restart`
 
-- `$ ssh -i ~/.ssh/grader_key -p 2200 grader@52.40.200.116`
+- `$ ssh -i ~/.ssh/udacity_key.rsa -p 2200 grader@52.40.200.116`
 
 # 6\. Configure the Uncomplicated Firewall to only allow incoming connections.
 
@@ -42,26 +43,107 @@
 - `# sudo ufw allow 123/udp`
 - `# sudo ufw enable`
 
-# 7\. Install and configure Apache to serve a Python mod_wsgi application
+# 7\. Install "fail2ban" to monitor for repeated unsuccessful login attempts and ban attackers
 
-- `# sudo apt-get install apache2`
+- `# sudo apt-get install fail2ban`
+- "sendmail" package to send the alerts to the admin user `# sudo apt-get install sendmail`
+- `# sudo cp /etc/fail2ban/jail.conf /etc/fail2ban/jail.local`
+- `# sudo nano /etc/fail2ban/jail.local` And set the "destemail" field to admin user's email address
 
-- <http://ec2-52-40-200-116.us-west-2.compute.amazonaws.com/> sudo apt-get install libapache2-mod-wsgi got error when
+# 8\. Install and configure Apache to serve a Python mod_wsgi application
 
-  - Restarting web server apache2 AH00557: apache2: apr_sockaddr_info_get() failed for ip-10-20-5-126 AH00558: apache2: Could not reliably determine the server's fully qualified domain name, using 127.0.0.1\. Set the 'ServerName' directive globally to suppress this message
+- Install apache2 `# sudo apt-get install apache2`
 
-- # sudo nano /etc/apache2/sites-enabled/000-default.conf
+- <http://ec2-52-40-200-116.us-west-2.compute.amazonaws.com/>
 
-  add the following line at the end of the
+- Install mod-wsgi `# sudo apt-get install libapache2-mod-wsgi python-dev`
 
-  <virtualhost *:80=""> block, right before the closing </virtualhost>
+- Enable mod_wsgi: `# sudo a2enmod wsgi`
 
-  line: WSGIScriptAlias / /var/www/html/myapp.wsgi
+- `# sudo service apache2 start`
 
-- sudo apache2ctl restart same error occured! sudo nano /etc/apache2/conf-available/servername.conf ServerName localhost sudo a2enconf servername sudo apache2ctl restart sudo nano /var/www/html/myapp.wsgi
+# 9\. Install GitHub
 
-- Install and configure PostgreSQL a. Do not allow remote connections b. Create a new user named catalog that has limited permissions to your catalog application database
+- `# sudo apt-get install git`
+- `# git config --global user.name <username>`
+- `# git config --global user.email <email>`
 
-- Install git, clone and set up your Catalog App project (from your GitHub repository from earlier in the Nanodegree program) so that it functions correctly when visiting your server's IP address in a browser. Remember to set this up appropriately so that your .git directory is not publicly accessible via a browser!
+# 10\. Clone Catalog from GitHub
 
-- Your Amazon EC2 Instance's public URL will look something like this: <http://ec2-XX-XX-XXX-XXX.us-west-2.compute.amazonaws.com/> where the X's are replaced with your instance's IP address. You can use this url when configuring third party authentication. Please note the the IP address part of the AWS URL uses dashes, not dots.
+- Create Catalog directory and change ownership `# cd /var/www
+
+  # sudo mkdir catalog
+
+  # sudo chown -R grader:grader catalog`
+
+- Clone Catalog repo from GitHub `# cd catalog
+
+  # git clone <https://github.com/halee9/catalog.git> catalog`
+
+- Create "catalog.wsgi" under "catalog" folder and set: ```Python
+
+import sys import logging logging.basicConfig(stream=sys.stderr) sys.path.insert(0, "/var/www/catalog/")
+
+from catalog import app as application`
+
+```
+
+# 11\. Create a new virtual host
+
+- Create a virtual host conifg file `# sudo nano /etc/apache2/sites-available/catalog.conf`
+-
+```
+
+<virtualhost *:80="">
+    ServerName 52.40.200.116
+    ServerAlias ec2-52-40-200-116.us-west-2.compute.amazonaws.com
+    ServerAdmin admin@52.40.200.116
+    WSGIDaemonProcess catalog python-path=/var/www/catalog:/var/www/catalog/venv/lib/python2.7/site-packages
+    WSGIProcessGroup catalog
+    WSGIScriptAlias / /var/www/catalog/catalog.wsgi
+    <directory var="" www="" catalog="">
+</directory></virtualhost>
+
+```
+  Order allow,deny
+    Allow from all
+```
+
+Alias /static /var/www/catalog/catalog/static
+
+<directory var="" www="" catalog="" static="">
+  <pre>
+
+  <code>  Order allow,deny
+    Allow from all
+  </code>
+</pre>
+</directory>
+
+ErrorLog ${APACHE_LOG_DIR}/error.log LogLevel warn CustomLog ${APACHE_LOG_DIR}/access.log combined ```
+
+- sudo a2dissite 000-default
+
+- sudo a2endsite catalog
+
+# 12
+
+- Installing Python packages `# sudo apt-get install python-pip`
+- sudo pip install virtualenv
+- cd /var/www/catalog
+- sudo virtualenv venv
+- source venv/bin/activate
+- sudo chmod -R 777 venv
+- pip install Flask
+- pip install bleach httplib2 request oauth2client sqlalchemy psycopg2
+
+# 13 Install and configure PostgreSQL
+
+- sudo apt-get install libpq-dev python-dev
+- sudo apt-get install postgresql postgresql-contrib
+- sudo su - postgres
+- psql `CREATE USER catalog WITH PASSWORD 'password'; ALTER USER catalog CREATEDB; CREATE DATABASE catalog WITH OWNER catalog; \c catalog; REVOKE ALL ON SCHEMA public FROM public; GRANT ALL ON SCHEMA public TO catalog; \q`
+- exit engine = create_engine('postgresql://catalog:password@localhost/catalog')
+- python /var/www/catalog/catalog/catalog_db.py
+
+sudo service apache2 restart
