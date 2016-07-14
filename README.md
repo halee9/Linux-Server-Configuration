@@ -75,6 +75,9 @@
 - Clone Catalog repo from GitHub
 - `# cd catalog`
 - `# git clone https://github.com/halee9/catalog.git catalog`
+
+# 11\. Create a new wsgi file
+
 - Create _catalog.wsgi_ under _catalog_ folder and set:
 
 ```python
@@ -87,9 +90,11 @@ sys.path.insert(0, _/var/www/catalog/_)
 from catalog import app as application`
 ```
 
-# 11\. Create a new virtual host
+# 12\. Create a new virtual host
 
-- Create a virtual host config file `# sudo nano /etc/apache2/sites-available/catalog.conf` ```python
+- Create a virtual host config file `# sudo nano /etc/apache2/sites-available/catalog.conf`
+
+```python
 
 <virtualhost *:80="">
     ServerName 52.40.200.116
@@ -111,7 +116,6 @@ from catalog import app as application`
     LogLevel warn
     CustomLog ${APACHE_LOG_DIR}/access.log combined
 </virtualhost>
-
 ```
 
 - `# sudo a2dissite 000-default`
