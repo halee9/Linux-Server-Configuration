@@ -121,24 +121,39 @@ from catalog import app as application`
 - `# sudo a2dissite 000-default`
 - `# sudo a2endsite catalog`
 
-# 12
+# 12\. Install pip and the project's dependancies
 
 - Installing Python packages `# sudo apt-get install python-pip`
-- sudo pip install virtualenv
-- cd /var/www/catalog
-- sudo virtualenv venv
-- source venv/bin/activate
-- sudo chmod -R 777 venv
-- pip install Flask
-- pip install bleach httplib2 request oauth2client sqlalchemy psycopg2
+- `# sudo pip install virtualenv`
+- `# cd /var/www/catalog`
+- `# sudo virtualenv venv`
+- `# source venv/bin/activate`
+- `# sudo chmod -R 777 venv`
+- `# pip install Flask`
+- `# pip install oauth2client sqlalchemy psycopg2`
 
-# 13 Install and configure PostgreSQL
+# 13\. Install and configure PostgreSQL
 
-- sudo apt-get install libpq-dev python-dev
-- sudo apt-get install postgresql postgresql-contrib
-- sudo su - postgres
-- psql `CREATE USER catalog WITH PASSWORD 'password'; ALTER USER catalog CREATEDB; CREATE DATABASE catalog WITH OWNER catalog; \c catalog; REVOKE ALL ON SCHEMA public FROM public; GRANT ALL ON SCHEMA public TO catalog; \q`
-- exit engine = create_engine('postgresql://catalog:password@localhost/catalog')
-- python /var/www/catalog/catalog/catalog_db.py
+- `# sudo apt-get install libpq-dev python-dev`
+- `# sudo apt-get install postgresql postgresql-contrib`
+- `# sudo su - postgres`
+- `# psql`
 
-sudo service apache2 restart
+  ```
+  CREATE USER catalog WITH PASSWORD 'password';
+  ALTER USER catalog CREATEDB; CREATE DATABASE catalog WITH OWNER catalog;
+  \c catalog;
+  REVOKE ALL ON SCHEMA public FROM public;
+  GRANT ALL ON SCHEMA public TO catalog;
+  \q
+  ```
+
+- `# exit`
+
+# 14\. Modify _Catalog App_ and authentication
+
+- Replace DB and Google Credentials
+
+# 14\. Restart Apache
+
+- `# sudo service apache2 restart`
