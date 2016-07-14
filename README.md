@@ -5,8 +5,8 @@
 
 # 2\. Create a new user named grader and grant this user sudo permissions.
 
-- Create a new user named "grader" and set password `# sudo adduser grader`
-- Create a new file named "grader" in "sudoers.d" directory `# sudo nano /etc/sudoers.d/grader`
+- Create a new user named _grader_ and set password `# sudo adduser grader`
+- Create a new file named _grader_ in _sudoers.d_ directory `# sudo nano /etc/sudoers.d/grader`
 - Set following text and save it `grader ALL=(ALL:ALL) ALL`
 
 # 3\. Update all currently installed packages.
@@ -22,19 +22,19 @@
 
 # 5\. Change the SSH port from 22 to 2200
 
-- On your local machine, generate an id and public key `$ ssh-keygen -f ~/.ssh/udacity_key.rsa`
+- On your local machine, generate an id and public key `# ssh-keygen -f ~/.ssh/udacity_key.rsa`
 - `# mkdir /home/grader/.ssh`
 - `# nano /home/grader/.ssh/authorized_keys`
-- copy content of "udacity_key.rsa.pub" on the local to "authorized_keys" on the host
+- copy content of _udacity_key.rsa.pub_ on the local to _authorized_keys_ on the host
 - `sudo chmod 700 /home/grader/.ssh`
 - `sudo chmod 644 /home/grader/.ssh/authorized_keys`
 - `sudo chown -R grader:grader /home/grader/.ssh`
 
-- `# sudo nano /etc/ssh/sshd_config` Find "Port" and modify 22 to 2200
+- `# sudo nano /etc/ssh/sshd_config` Find _Port_ and modify 22 to 2200
 
 - `# sudo service ssh restart`
 
-- `$ ssh -i ~/.ssh/udacity_key.rsa -p 2200 grader@52.40.200.116`
+- `# ssh -i ~/.ssh/udacity_key.rsa -p 2200 grader@52.40.200.116`
 
 # 6\. Configure the Uncomplicated Firewall to only allow incoming connections.
 
@@ -43,18 +43,16 @@
 - `# sudo ufw allow 123/udp`
 - `# sudo ufw enable`
 
-# 7\. Install "fail2ban" to monitor for repeated unsuccessful login attempts and ban attackers
+# 7\. Install _fail2ban_ to monitor for repeated unsuccessful login attempts and ban attackers
 
 - `# sudo apt-get install fail2ban`
-- "sendmail" package to send the alerts to the admin user `# sudo apt-get install sendmail`
+- _sendmail_ package to send the alerts to the admin user `# sudo apt-get install sendmail`
 - `# sudo cp /etc/fail2ban/jail.conf /etc/fail2ban/jail.local`
-- `# sudo nano /etc/fail2ban/jail.local` And set the "destemail" field to admin user's email address
+- `# sudo nano /etc/fail2ban/jail.local` And set the _destemail_ field to admin user's email address
 
 # 8\. Install and configure Apache to serve a Python mod_wsgi application
 
 - Install apache2 `# sudo apt-get install apache2`
-
-- <http://ec2-52-40-200-116.us-west-2.compute.amazonaws.com/>
 
 - Install mod-wsgi `# sudo apt-get install libapache2-mod-wsgi python-dev`
 
@@ -70,29 +68,28 @@
 
 # 10\. Clone Catalog from GitHub
 
-- Create Catalog directory and change ownership `# cd /var/www
+- Create Catalog directory and change ownership
+- `# cd /var/www`
+- `# sudo mkdir catalog`
+- `# sudo chown -R grader:grader catalog`
+- Clone Catalog repo from GitHub
+- `# cd catalog`
+- `# git clone https://github.com/halee9/catalog.git catalog`
+- Create _catalog.wsgi_ under _catalog_ folder and set:
 
-  # sudo mkdir catalog
+```python
 
-  # sudo chown -R grader:grader catalog`
-
-- Clone Catalog repo from GitHub `# cd catalog
-
-  # git clone <https://github.com/halee9/catalog.git> catalog`
-
-- Create "catalog.wsgi" under "catalog" folder and set: ```Python
-
-import sys import logging logging.basicConfig(stream=sys.stderr) sys.path.insert(0, "/var/www/catalog/")
+import sys
+import logging
+logging.basicConfig(stream=sys.stderr)
+sys.path.insert(0, _/var/www/catalog/_)
 
 from catalog import app as application`
-
 ```
 
 # 11\. Create a new virtual host
 
-- Create a virtual host conifg file `# sudo nano /etc/apache2/sites-available/catalog.conf`
--
-```
+- Create a virtual host config file `# sudo nano /etc/apache2/sites-available/catalog.conf` ```python
 
 <virtualhost *:80="">
     ServerName 52.40.200.116
@@ -102,29 +99,23 @@ from catalog import app as application`
     WSGIProcessGroup catalog
     WSGIScriptAlias / /var/www/catalog/catalog.wsgi
     <directory var="" www="" catalog="">
-</directory></virtualhost>
+        Order allow,deny
+        Allow from all
+    </directory>
+    Alias /static /var/www/catalog/catalog/static
+    <directory var="" www="" catalog="" static="">
+        Order allow,deny
+        Allow from all
+    </directory>
+    ErrorLog ${APACHE_LOG_DIR}/error.log
+    LogLevel warn
+    CustomLog ${APACHE_LOG_DIR}/access.log combined
+</virtualhost>
 
 ```
-  Order allow,deny
-    Allow from all
-```
 
-Alias /static /var/www/catalog/catalog/static
-
-<directory var="" www="" catalog="" static="">
-  <pre>
-
-  <code>  Order allow,deny
-    Allow from all
-  </code>
-</pre>
-</directory>
-
-ErrorLog ${APACHE_LOG_DIR}/error.log LogLevel warn CustomLog ${APACHE_LOG_DIR}/access.log combined ```
-
-- sudo a2dissite 000-default
-
-- sudo a2endsite catalog
+- `# sudo a2dissite 000-default`
+- `# sudo a2endsite catalog`
 
 # 12
 
