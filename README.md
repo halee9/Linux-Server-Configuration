@@ -2,6 +2,7 @@
 
 - Public IP Address: 52.40.200.116
 - URL: <http://ec2-52-40-200-116.us-west-2.compute.amazonaws.com/>
+- SSH: ssh -i ~/.ssh/udacity_key.rsa -p 2200 grader@52.40.200.116
 
 # 2\. Create a new user named grader and grant this user sudo permissions.
 
